@@ -7,21 +7,25 @@ import os
 import numpy as np
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.base import BaseEstimator, TransformerMixin
 
 DOWNLOAD_ROOT = "https://raw.githubusercontent.com/ageron/handson-ml2/master/"
 HOUSING_PATH = os.path.join("datasets", "housing")
 HOUSING_URL = DOWNLOAD_ROOT + "datasets/housing/housing.tgz"
 
+# Load raw data
 def load_housing_data(housing_path=HOUSING_PATH):
     csv_path = os.path.join(housing_path, "housing.csv")
     return pd.read_csv(csv_path)
 housing = load_housing_data()
 
+# Add new variable
 housing["income_cat"] = pd.cut(housing["median_income"],
                                bins=[0, 1.5, 3, 4.5, 6, np.inf],
-                               labels=[1, 2, 3, 4, 5]) # Add new variable
+                               labels=[1, 2, 3, 4, 5])
 
-split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42) # Use Stratified Shuffle
+# Use Stratified Shuffle
+split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
 for train_index, test_index in split.split(housing, housing["income_cat"]):
     strat_train_set = housing.loc[train_index]
     strat_test_set = housing.loc[test_index]
@@ -29,11 +33,10 @@ for train_index, test_index in split.split(housing, housing["income_cat"]):
 housing = strat_train_set.drop("median_house_value", axis=1)
 housing_labels = strat_train_set["median_house_value"].copy()
 
-from sklearn.base import BaseEstimator, TransformerMixin
-
-# column index
+# Column index
 rooms_ix, bedrooms_ix, population_ix, households_ix = 3, 4, 5, 6
 
+# Create class for add attributes
 class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
     def __init__(self, add_bedrooms_per_room=True): # no *args or **kargs
         self.add_bedrooms_per_room = add_bedrooms_per_room
@@ -49,30 +52,37 @@ class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
         else:
             return np.c_[X, rooms_per_household, population_per_household]
 
+# Use CombinedAttributesAdder
 attr_adder = CombinedAttributesAdder(add_bedrooms_per_room=False)
 housing_extra_attribs = attr_adder.transform(housing.values)
 
+# Get the column indices
 col_names = "total_rooms", "total_bedrooms", "population", "households"
 rooms_ix, bedrooms_ix, population_ix, households_ix = [
-    housing.columns.get_loc(c) for c in col_names] # get the column indices
+    housing.columns.get_loc(c) for c in col_names]
 
+# Pipeline for numeric columns
 num_pipeline = Pipeline([
         ('imputer', SimpleImputer(strategy="median")),
         ('attribs_adder', CombinedAttributesAdder()),
         ('std_scaler', StandardScaler()),
     ])
 
+# Dataset without ocean proximity
 housing_num = housing.drop("ocean_proximity", axis=1)
 
 # Combinated all
 num_attribs = list(housing_num)
 cat_attribs = ["ocean_proximity"]
 
+# Сombination numeric columns and ocean proximity columns
 full_pipeline = ColumnTransformer([
         ("num", num_pipeline, num_attribs),
         ("cat", OneHotEncoder(), cat_attribs),
     ])
 
+# Clear data
 housing_prepared = full_pipeline.fit_transform(housing)
 
+# Save data
 np.save('final_data/housing_prepared.npy', housing_prepared)
