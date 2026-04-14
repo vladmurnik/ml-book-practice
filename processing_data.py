@@ -51,6 +51,19 @@ class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
                          bedrooms_per_room]
         else:
             return np.c_[X, rooms_per_household, population_per_household]
+    def get_feature_names_out(self, input_features=None):
+        if input_features is None:
+            input_features = np.array([f"f{i}" for i in range(X.shape[1])])
+
+        new_features = [
+            "rooms_per_household",
+            "population_per_household"
+        ]
+
+        if self.add_bedrooms_per_room:
+            new_features.append("bedrooms_per_room")
+
+        return np.array(list(input_features) + new_features)
 
 # Use CombinedAttributesAdder
 attr_adder = CombinedAttributesAdder(add_bedrooms_per_room=False)
@@ -84,5 +97,11 @@ full_pipeline = ColumnTransformer([
 # Clear data
 housing_prepared = full_pipeline.fit_transform(housing)
 
+# Numpy to Pandas data
+housing_prepared = pd.DataFrame(
+    housing_prepared,
+    columns=full_pipeline.get_feature_names_out()
+)
+
 # Save data
-np.save('final_data/housing_prepared.npy', housing_prepared)
+housing_prepared.to_csv('final_data/housing_prepared.csv', index=False)
