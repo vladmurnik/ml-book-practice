@@ -103,5 +103,12 @@ housing_prepared = pd.DataFrame(
     columns=full_pipeline.get_feature_names_out()
 )
 
+# Reset index
+housing_prepared = housing_prepared.reset_index(drop=True)
+housing_labels = housing_labels.reset_index(drop=True)
+
+# Add median house value
+housing_prepared["median_house_value"] = housing_labels
+
 # Save data
 housing_prepared.to_csv('final_data/housing_prepared.csv', index=False)
