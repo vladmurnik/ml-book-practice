@@ -1,8 +1,8 @@
-````md
 # ML Book Practice — Housing Regression
 
 This repository contains a regression project based on the California Housing dataset.
 
+````md
 datasets/
 ├── housing/
 │   ├── housing.csv
@@ -104,4 +104,3 @@ python train_model.py
 * configurable pipeline parameters
 * inference script for new samples
 
-```
