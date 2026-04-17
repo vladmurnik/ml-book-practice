@@ -3,9 +3,6 @@
 
 This repository contains a regression project based on the California Housing dataset.
 
-## Project Structure
-
-```text
 datasets/
 ├── housing/
 │   ├── housing.csv
