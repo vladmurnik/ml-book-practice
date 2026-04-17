@@ -1,6 +1,10 @@
 from sklearn.ensemble import RandomForestRegressor
 import pandas as pd
 import joblib
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+day_create_model = datetime.now(ZoneInfo("Europe/Moscow")).date()
 
 forest_reg = RandomForestRegressor(max_features=8, n_estimators=30, n_jobs=-1,
                       random_state=42)
@@ -12,4 +16,4 @@ y = df["median_house_value"].copy()
 
 forest_reg.fit(X, y)
 
-joblib.dump(forest_reg, 'models/forest_reg_1.joblib')
+joblib.dump(forest_reg, f"models/forest_reg_{day_create_model}.joblib")
